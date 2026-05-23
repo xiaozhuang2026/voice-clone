@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎙️ AI语音克隆 - Voice Clone Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a25;
+      --border: rgba(255,255,255,0.08);
+      --text: #e8e8ed;
+      --text2: #8888a0;
+      --accent: #7c5cfc;
+      --accent2: #5c3cfc;
+      --glow: rgba(124,92,252,0.15);
+      --success: #4ecdc4;
+      --danger: #ff6b6b;
+      --warn: #ffd93d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    .bg-effect {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: 
+        radial-gradient(ellipse 600px 400px at 20% 30%, rgba(124,92,252,0.08), transparent),
+        radial-gradient(ellipse 500px 300px at 80% 70%, rgba(78,205,196,0.06), transparent),
+        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(92,60,252,0.04), transparent);
+      pointer-events: none; z-index: 0;
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes bgPulse {
+      0% { opacity: 0.8; } 100% { opacity: 1.2; }
+    }
+
+    /* Waveform animation */
+    .waveform {
+      display: flex; align-items: center; gap: 3px;
+      height: 40px; justify-content: center; margin: 20px 0;
+    }
+    .waveform .bar {
+      width: 4px; border-radius: 4px;
+      background: linear-gradient(to top, var(--accent), var(--success));
+      animation: wave 1.2s ease-in-out infinite;
+    }
+    @keyframes wave {
+      0%, 100% { height: 8px; opacity: 0.4; }
+      50% { height: 32px; opacity: 1; }
+    }
+
+    .container {
+      max-width: 900px; margin: 0 auto; padding: 20px;
+      position: relative; z-index: 1;
+    }
+
+    /* Header */
+    header {
+      text-align: center; padding: 40px 0 30px;
+    }
+    header h1 {
+      font-size: 2.2rem; font-weight: 700;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, var(--success) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    header p {
+      color: var(--text2); font-size: 1rem; line-height: 1.6;
+    }
+
+    /* Tab navigation */
+    .tabs {
+      display: flex; gap: 4px; background: var(--surface);
+      border-radius: 12px; padding: 4px; margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+    .tab-btn {
+      flex: 1; padding: 12px 16px; border: none; border-radius: 10px;
+      background: transparent; color: var(--text2);
+      font-family: inherit; font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; transition: all 0.3s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .tab-btn:hover { color: var(--text); background: var(--surface2); }
+    .tab-btn.active {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 4px 15px rgba(124,92,252,0.3);
+    }
+
+    /* Tab content */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px;
+      margin-bottom: 16px;
+      transition: border-color 0.3s;
+    }
+    .card:hover { border-color: rgba(124,92,252,0.3); }
+    .card h3 {
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card p { color: var(--text2); font-size: 0.9rem; line-height: 1.6; }
+
+    /* Tool cards */
+    .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) { .tool-grid { grid-template-columns: 1fr; } }
+
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px;
+      cursor: pointer; transition: all 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .tool-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(124,92,252,0.15);
+    }
+    .tool-card .icon {
+      font-size: 2rem; margin-bottom: 10px; display: block;
+    }
+    .tool-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+    .tool-card .desc { color: var(--text2); font-size: 0.82rem; line-height: 1.5; }
+    .tool-card .tag {
+      display: inline-block; margin-top: 10px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 600;
+    }
+    .tag-free { background: rgba(78,205,196,0.15); color: var(--success); }
+    .tag-easy { background: rgba(255,217,61,0.15); color: var(--warn); }
+    .tag-best { background: rgba(124,92,252,0.15); color: var(--accent); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 24px; border: none; border-radius: 10px;
+      font-family: inherit; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: all 0.3s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(124,92,252,0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(124,92,252,0.4);
+    }
+    .btn-secondary {
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); }
+    .btn-block { width: 100%; }
+
+    /* Steps */
+    .steps { counter-reset: step; }
+    .step {
+      display: flex; gap: 16px; margin-bottom: 20px;
+      padding: 16px; border-radius: 12px;
+      background: var(--surface2); border: 1px solid var(--border);
+    }
+    .step-num {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+    .step-content h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+    .step-content p { color: var(--text2); font-size: 0.85rem; line-height: 1.5; }
+
+    /* iframe container */
+    .iframe-wrap {
+      border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--border);
+      background: #000;
+      position: relative;
+    }
+    .iframe-wrap iframe {
+      width: 100%; height: 700px; border: none;
+    }
+    .iframe-loading {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: var(--surface); z-index: 2;
+      transition: opacity 0.5s;
+    }
+    .iframe-loading.hidden { opacity: 0; pointer-events: none; }
+    .loading-spinner {
+      width: 40px; height: 40px; border: 3px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Info box */
+    .info-box {
+      background: rgba(124,92,252,0.08);
+      border: 1px solid rgba(124,92,252,0.2);
+      border-radius: 12px; padding: 16px;
+      margin: 16px 0;
+    }
+    .info-box p {
+      color: var(--text); font-size: 0.88rem; line-height: 1.6;
+    }
+    .info-box .info-title {
+      font-weight: 600; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    /* FAQ */
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q {
+      font-weight: 600; font-size: 0.95rem; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .faq-q::after { content: '+'; color: var(--accent); font-size: 1.2rem; }
+    .faq-a {
+      color: var(--text2); font-size: 0.88rem; line-height: 1.6;
+      max-height: 0; overflow: hidden; transition: max-height 0.3s;
+      margin-top: 0;
+    }
+    .faq-item.open .faq-a { max-height: 200px; margin-top: 10px; }
+    .faq-item.open .faq-q::after { content: '−'; }
+
+    /* Footer */
+    footer {
+      text-align: center; padding: 40px 0 20px;
+      color: var(--text2); font-size: 0.82rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.6rem; }
+      .tab-btn { font-size: 0.8rem; padding: 10px 8px; }
+      .tab-btn span { display: none; }
+      .iframe-wrap iframe { height: 500px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-effect"></div>
+
+  <div class="container">
+    <header>
+      <div class="waveform" id="waveform"></div>
+      <h1>🎙️ AI语音克隆工作室</h1>
+      <p>上传一段录音，AI就能模仿任意人的声音说话<br>完全免费，无需安装任何软件</p>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('online')">
+        🌐 <span>在线使用</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('recommend')">
+        ⭐ <span>工具推荐</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('help')">
+        📖 <span>使用教程</span>
+      </button>
+    </div>
+
+    <!-- Tab 1: Online tools -->
+    <div class="tab-content active" id="tab-online">
+      <div class="info-box">
+        <p class="info-title">💡 使用说明</p>
+        <p>点击下方按钮，会打开免费的在线语音克隆工具。<br>
+        <strong>推荐使用「GPT-SoVITS在线版」</strong>，效果最好！首次加载可能需要1-2分钟。</p>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <h3>🚀 方式一：直接嵌入（推荐）</h3>
+        <p style="margin-bottom:16px;">在下方直接操作，无需离开本页面</p>
+        <button class="btn btn-primary btn-block" onclick="loadGradio('kevinwang676/gpt_sovits_demo')" id="btn-embed">
+          ▶ 打开 GPT-SoVITS 语音克隆
+        </button>
+        <div id="embed-area" style="margin-top:16px;display:none;">
+          <div class="iframe-wrap">
+            <div class="iframe-loading" id="iframe-loading">
+              <div class="loading-spinner"></div>
+              <p style="margin-top:16px;color:var(--text2);font-size:0.9rem;">正在加载AI模型，请稍候...</p>
+              <p style="color:var(--text2);font-size:0.8rem;margin-top:8px;">首次加载可能需要 1-2 分钟</p>
+            </div>
+            <iframe id="gradio-frame" allow="microphone; autoplay" onload="onIframeLoad()"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🔗 方式二：新窗口打开</h3>
+        <p style="margin-bottom:16px;">如果嵌入页面加载失败，可以新窗口打开</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a href="https://huggingface.co/spaces/kevinwang676/gpt_sovits_demo" target="_blank" class="btn btn-primary">
+            🚀 GPT-SoVITS Demo
+          </a>
+          <a href="https://huggingface.co/spaces/zomehwh/GPT-SoVITS-ba" target="_blank" class="btn btn-secondary">
+            🎵 GPT-SoVITS Ba
+          </a>
+          <a href="https://www.fish.audio/" target="_blank" class="btn btn-secondary">
+            🐟 Fish Audio
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Recommendations -->
+    <div class="tab-content" id="tab-recommend">
+      <div class="tool-grid">
+        <div class="tool-card" onclick="window.open('https://www.fish.audio/','_blank')">
+          <span class="icon">🐟</span>
+          <h4>Fish Audio</h4>
+          <p class="desc">目前效果最好的语音克隆工具。上传15秒音频即可克隆，支持多语言。</p>
+          <span class="tag tag-best">效果最佳</span>
+          <span class="tag tag-free">免费额度</span>
+        </div>
+
+        <div class="tool-card" onclick="window.open('https://huggingface.co/spaces/kevinwang676/gpt_sovits_demo','_blank')">
+          <span class="icon">🎯</span>
+          <h4>GPT-SoVITS</h4>
+          <p class="desc">开源语音克隆神器。零样本推理，3-10秒音频即可克隆声音。</p>
+          <span class="tag tag-free">完全免费</span>
+          <span class="tag tag-easy">无需注册</span>
+        </div>
+
+        <div class="tool-card" onclick="window.open('https://www.coze.cn/','_blank')">
+          <span class="icon">🤖</span>
+          <h4>Coze 扣子</h4>
+          <p class="desc">字节跳动出品的AI平台，内置语音克隆功能，中文效果好。</p>
+          <span class="tag tag-free">免费</span>
+          <span class="tag tag-best">中文最佳</span>
+        </div>
+
+        <div class="tool-card" onclick="window.open('https://huggingface.co/spaces/mrfakename/E2-F5-TTS','_blank')">
+          <span class="icon">⚡</span>
+          <h4>F5-TTS</h4>
+          <p class="desc">新一代零样本TTS，克隆速度快，效果自然。HuggingFace免费使用。</p>
+          <span class="tag tag-free">完全免费</span>
+        </div>
+
+        <div class="tool-card" onclick="window.open('https://jimeng.jianying.com/ai-tool/image/generate','_blank')">
+          <span class="icon">🎬</span>
+          <h4>即梦AI</h4>
+          <p class="desc">字节跳动旗下，支持声音克隆和视频配音。</p>
+          <span class="tag tag-free">免费额度</span>
+        </div>
+
+        <div class="tool-card" onclick="window.open('https://www.minimaxi.com/','_blank')">
+          <span class="icon">🎵</span>
+          <h4>MiniMax 语音</h4>
+          <p class="desc">国内AI公司，语音合成质量高，支持声音克隆。</p>
+          <span class="tag tag-free">免费额度</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Help -->
+    <div class="tab-content" id="tab-help">
+      <div class="card">
+        <h3>📋 快速开始教程</h3>
+        <div class="steps" style="margin-top:16px;">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4>准备参考音频</h4>
+              <p>录一段你想模仿的人说话的声音，建议 <strong>3-10秒</strong>，清晰无噪音。可以用手机录音。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4>打开在线工具</h4>
+              <p>点击「在线使用」标签中的按钮，打开GPT-SoVITS在线版。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h4>上传音频并填写文字</h4>
+              <p>上传参考音频，填写音频中对应的文字内容，选择语言（中文选zh）。</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <h4>输入目标文字并生成</h4>
+              <p>输入你想让TA说的话，点击生成。等待几秒就能听到克隆后的语音！</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <h4>下载音频</h4>
+              <p>生成完成后可以在线试听，也可以下载为音频文件。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>❓ 常见问题</h3>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q">参考音频有什么要求？</div>
+          <div class="faq-a">
+            建议 3-10 秒，清晰无背景音乐和噪音，只有一个人说话。手机录音即可，不需要专业设备。越清晰效果越好。
+          </div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q">支持哪些语言？</div>
+          <div class="faq-a">
+            GPT-SoVITS 支持中文、英文、日文、韩文、粤语。其中中文效果最好。Fish Audio 支持更多语言。
+          </div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q">效果不好怎么办？</div>
+          <div class="faq-a">
+            1. 确保参考音频清晰无噪音<br>
+            2. 参考音频对应的文字要准确<br>
+            3. 尝试不同的参考音频<br>
+            4. 如果效果一直不好，建议用 Fish Audio，它通常效果更好
+          </div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q">页面加载很慢怎么办？</div>
+          <div class="faq-a">
+            HuggingFace Spaces 首次加载需要冷启动AI模型，可能需要 1-3 分钟。如果超时，刷新页面试试，或者换一个工具。
+          </div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q">完全免费吗？</div>
+          <div class="faq-a">
+            GPT-SoVITS 在 HuggingFace 上完全免费使用。Fish Audio 注册送免费额度，够日常使用。Coze 扣子也是免费的。
+          </div>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+          <div class="faq-q">需要翻墙吗？</div>
+          <div class="faq-a">
+            HuggingFace Spaces 在国内可能需要科学上网。如果不想翻墙，推荐使用 Fish Audio（fish.audio）或 Coze（coze.cn），国内可直接访问。
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <p class="info-title">⚠️ 温馨提示</p>
+        <p>语音克隆技术请仅用于学习和娱乐目的。请勿用于冒充他人进行欺诈等违法活动。使用时请遵守相关法律法规。</p>
+      </div>
+    </div>
+
+    <footer>
+      <p>AI语音克隆工作室 · 免费在线工具合集</p>
+      <p style="margin-top:4px;">仅供学习交流使用</p>
+    </footer>
+  </div>
+
+  <script>
+    // Generate waveform bars
+    const waveform = document.getElementById('waveform');
+    for (let i = 0; i < 30; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.animationDelay = (i * 0.08) + 's';
+      waveform.appendChild(bar);
+    }
+
+    // Tab switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Load Gradio Space
+    function loadGradio(spaceId) {
+      const area = document.getElementById('embed-area');
+      const frame = document.getElementById('gradio-frame');
+      const loading = document.getElementById('iframe-loading');
+
+      area.style.display = 'block';
+      loading.classList.remove('hidden');
+      frame.src = 'https://huggingface.co/spaces/' + spaceId + '/?embed=true';
+      
+      document.getElementById('btn-embed').textContent = '⏳ 正在加载...';
+      document.getElementById('btn-embed').disabled = true;
+
+      // Fallback: hide loading after 60s even if onload doesn't fire
+      setTimeout(() => {
+        loading.classList.add('hidden');
+      }, 60000);
+    }
+
+    function onIframeLoad() {
+      setTimeout(() => {
+        document.getElementById('iframe-loading').classList.add('hidden');
+        document.getElementById('btn-embed').textContent = '✅ 已加载';
+      }, 3000);
+    }
+
+    // FAQ toggle
+    document.querySelectorAll('.faq-item').forEach(item => {
+      item.addEventListener('click', function() {
+        // toggle handled by onclick in HTML
+      });
+    });
+  </script>
+</body>
+</html>
