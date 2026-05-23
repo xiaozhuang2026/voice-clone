@@ -4,9 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI语音克隆 - 免费文字转语音</title>
-<script type="module" src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 <style>
-:root{--bg:#0a0a0f;--card:#12121a;--card2:#1a1a28;--border:#2a2a3a;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e74c3c;--text:#e8e8f0;--text2:#8888a8;--radius:16px}
+:root{--bg:#0a0a0f;--card:#12121a;--card2:#1a1a28;--border:#2a2a3a;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e74c3c;--orange:#f39c12;--text:#e8e8f0;--text2:#8888a8;--radius:16px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 .bg-glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(108,92,231,.15) 0%,transparent 70%);pointer-events:none;z-index:0}
@@ -70,13 +69,18 @@ textarea::placeholder{color:#555}
 .presets{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .preset-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text2);font-size:12px;cursor:pointer;transition:all .2s}
 .preset-btn:hover{border-color:var(--accent);color:var(--accent2)}
+.retry-box{display:none;margin-top:12px;padding:14px;background:rgba(243,156,18,.08);border:1px solid rgba(243,156,18,.25);border-radius:10px;font-size:13px;color:var(--orange)}
+.retry-box.show{display:block}
+.retry-box .retry-info{margin-bottom:8px}
+.retry-box .retry-btn{padding:8px 20px;border-radius:8px;border:none;background:var(--orange);color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.retry-box .retry-btn:hover{opacity:.85}
+.retry-box .retry-btn:disabled{opacity:.5;cursor:not-allowed}
 footer{text-align:center;padding:30px 0 20px;color:var(--text2);font-size:12px}
 footer a{color:var(--accent2);text-decoration:none}
 .history{margin-top:16px}
 .history-item{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-top:8px;background:var(--card2);border-radius:10px}
 .history-item audio{flex:1;height:32px}
 .history-item .time{font-size:11px;color:var(--text2);white-space:nowrap}
-.retry-hint{font-size:12px;color:var(--text2);margin-top:8px;text-align:center}
 @media(max-width:480px){header h1{font-size:22px}.card{padding:14px}.gen-btn{font-size:14px;padding:14px}}
 </style>
 </head>
@@ -86,7 +90,7 @@ footer a{color:var(--accent2);text-decoration:none}
   <header>
     <h1>🎙️ AI语音克隆</h1>
     <p>上传或录制参考音频，输入文字，AI模仿声音朗读</p>
-    <span class="badge">✨ 完全免费 · 无时长限制</span>
+    <span class="badge">✨ 完全免费 · 无需注册</span>
   </header>
 
   <!-- Step 1: Reference Audio -->
@@ -141,12 +145,16 @@ footer a{color:var(--accent2);text-decoration:none}
 
   <!-- Generate -->
   <button class="gen-btn" id="genBtn" onclick="generate()">🚀 生成语音</button>
-  <p class="retry-hint" id="retryHint" style="display:none">⏳ AI服务需要启动GPU，首次可能需要等待1-2分钟...</p>
 
   <div class="status" id="status">
-    <div class="step" id="step1">⏳ 上传音频...</div>
-    <div class="step" id="step2">⏳ AI生成中（可能需要1-2分钟）...</div>
+    <div class="step" id="step1">⏳ 上传音频到AI服务器...</div>
+    <div class="step" id="step2">⏳ AI正在生成语音...</div>
     <div class="step" id="step3">⏳ 下载结果...</div>
+  </div>
+
+  <div class="retry-box" id="retryBox">
+    <div class="retry-info" id="retryInfo">⚠️ GPU服务器繁忙，正在自动重试...</div>
+    <button class="retry-btn" id="retryBtn" onclick="generate()">🔄 立即重试</button>
   </div>
 
   <div class="error-msg" id="errorMsg"></div>
@@ -176,11 +184,32 @@ footer a{color:var(--accent2);text-decoration:none}
   </footer>
 </div>
 
-<script type="module">
-// Import Gradio client
-import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+<script>
+// Multiple backend spaces for fallback
+const BACKENDS = [
+  {
+    name: 'mrfakename',
+    url: 'https://mrfakename-e2-f5-tts.hf.space',
+    endpoint: '/gradio_api/call/predict',
+    upload: '/gradio_api/upload',
+    resultPrefix: '/gradio_api/call/predict/',
+    // params: [ref_audio_file, ref_text, gen_text]
+    paramCount: 3
+  },
+  {
+    name: 'chenxie95',
+    url: 'https://chenxie95-cross-lingual-f5-tts-space.hf.space',
+    endpoint: '/gradio_api/call/basic_tts',
+    upload: '/gradio_api/upload',
+    resultPrefix: '/gradio_api/call/basic_tts/',
+    // params: [ref_audio_file, gen_text, randomize_seed(true), seed(42)]
+    paramCount: 4
+  }
+];
 
-const SPACE_URL = "https://mrfakename-e2-f5-tts.hf.space/";
+const MAX_RETRIES = 4;        // Max retries per backend
+const RETRY_DELAYS = [5000, 10000, 20000, 30000]; // Exponential backoff
+
 let refAudioBlob = null;
 let refAudioUrl = null;
 let mediaRecorder = null;
@@ -190,8 +219,9 @@ let isRecording = false;
 let recordTimer = null;
 let recordSeconds = 0;
 let historyItems = [];
+let isGenerating = false;
+let abortController = null;
 
-// Make functions global
 window.switchTab = function(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('recordTab').classList.remove('active');
@@ -320,88 +350,243 @@ window.handleFile = function(file) {
   showRefPreview(URL.createObjectURL(file));
 };
 
-// === Generate with Gradio Client ===
+// === Upload audio to a Gradio space ===
+async function uploadAudio(backend, blob) {
+  const formData = new FormData();
+  const ext = blob.type && blob.type.includes('webm') ? 'webm' : 
+              blob.type && blob.type.includes('mp3') ? 'mp3' : 
+              blob.type && blob.type.includes('mp4') ? 'm4a' : 'wav';
+  const filename = `ref_audio.${ext}`;
+  formData.append('files', blob, filename);
+
+  const resp = await fetch(backend.url + backend.upload, {
+    method: 'POST',
+    body: formData
+  });
+  if (!resp.ok) throw new Error(`Upload failed: ${resp.status}`);
+  const paths = await resp.json();
+  if (!paths || !paths[0]) throw new Error('Upload returned no path');
+  return paths[0]; // e.g. "/tmp/gradio/xxx/ref_audio.wav"
+}
+
+// === Call a backend and get the result ===
+async function callBackend(backend, filePath, genText, signal) {
+  // Build request data based on backend
+  let data;
+  if (backend.name === 'mrfakename') {
+    data = {
+      data: [
+        { path: filePath, meta: { _type: 'gradio.FileData' } },
+        "",
+        genText
+      ]
+    };
+  } else if (backend.name === 'chenxie95') {
+    data = {
+      data: [
+        { path: filePath, meta: { _type: 'gradio.FileData' } },
+        genText,
+        true,  // randomize_seed
+        42     // seed
+      ]
+    };
+  }
+
+  // Submit the job
+  const callResp = await fetch(backend.url + backend.endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+    signal
+  });
+  if (!callResp.ok) throw new Error(`Call failed: ${callResp.status}`);
+  const callData = await callResp.json();
+  const eventId = callData.event_id;
+  if (!eventId) throw new Error('No event_id returned');
+
+  // Poll for result via SSE
+  return new Promise((resolve, reject) => {
+    const sseUrl = backend.url + backend.resultPrefix + eventId;
+    const evtSource = new EventSource(sseUrl);
+    let lastEvent = '';
+
+    evtSource.addEventListener('heartbeat', () => {
+      // Still processing, GPU working
+    });
+
+    evtSource.addEventListener('error', (e) => {
+      evtSource.close();
+      // Check if it's an SSE error event with null data (ZeroGPU failure)
+      reject(new Error('GPU_ERROR'));
+    });
+
+    evtSource.addEventListener('complete', (e) => {
+      evtSource.close();
+      try {
+        const result = JSON.parse(e.data);
+        // result is like: [{"path":"/tmp/xxx/output.wav","is_stream":false,...}, ...]
+        if (result && result[0] && result[0].path) {
+          const audioPath = result[0].path;
+          const audioUrl = backend.url + '/gradio_api/file=' + audioPath;
+          resolve(audioUrl);
+        } else {
+          reject(new Error('No audio in result'));
+        }
+      } catch (err) {
+        reject(new Error('Failed to parse result: ' + err.message));
+      }
+    });
+
+    // Handle EventSource errors (connection failed)
+    evtSource.onerror = () => {
+      evtSource.close();
+      // If we already got an 'error' event with null data, it was GPU error
+      // Otherwise it's a connection error
+      reject(new Error('SSE_CONNECTION_ERROR'));
+    };
+
+    // Timeout after 3 minutes
+    setTimeout(() => {
+      evtSource.close();
+      reject(new Error('TIMEOUT'));
+    }, 180000);
+  });
+}
+
+// === Main generate function with multi-backend retry ===
 window.generate = async function() {
+  if (isGenerating) return;
+  
   const btn = document.getElementById('genBtn');
   const statusEl = document.getElementById('status');
   const errorEl = document.getElementById('errorMsg');
   const resultArea = document.getElementById('resultArea');
-  const retryHint = document.getElementById('retryHint');
+  const retryBox = document.getElementById('retryBox');
 
   if (!refAudioBlob) { showError('请先录制或上传参考音频'); return; }
   const genText = document.getElementById('genText').value.trim();
   if (!genText) { showError('请输入想让AI说的文字'); return; }
 
+  isGenerating = true;
+  abortController = new AbortController();
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> 生成中...';
   statusEl.classList.add('show');
   errorEl.classList.remove('show');
   resultArea.classList.remove('show');
-  retryHint.style.display = 'block';
+  retryBox.classList.remove('show');
+  resetSteps();
   setStep(1);
 
-  try {
-    // Connect to Gradio space
-    setStep(1);
-    const client = await Client.connect(SPACE_URL, {
-      hf_token: undefined // anonymous
-    });
+  let success = false;
+  let lastError = '';
 
-    // Submit the job
-    setStep(2);
-    const result = await client.predict("/predict", {
-      ref_audio: refAudioBlob,
-      ref_text: "",
-      gen_text: genText,
-      remove_silence: true,
-    });
-
-    // Get result
-    setStep(3);
-    const audioData = result.data[0];
+  for (let bi = 0; bi < BACKENDS.length && !success; bi++) {
+    const backend = BACKENDS[bi];
     
-    if (!audioData || !audioData.url) {
-      throw new Error('生成失败，API未返回音频');
+    for (let retry = 0; retry < MAX_RETRIES && !success; retry++) {
+      try {
+        if (retry > 0) {
+          const delay = RETRY_DELAYS[Math.min(retry - 1, RETRY_DELAYS.length - 1)];
+          updateRetryBox(backend.name, retry, delay);
+          await new Promise(r => setTimeout(r, delay));
+          if (!isGenerating) return; // Cancelled
+        } else {
+          updateStatus(`尝试 ${backend.name} 服务器...`);
+        }
+
+        // Step 1: Upload audio
+        setStep(1);
+        const filePath = await uploadAudio(backend, refAudioBlob);
+
+        // Step 2: Call API
+        setStep(2);
+        if (retry > 0) {
+          updateStatus(`第${retry + 1}次尝试 (${backend.name})...`);
+        }
+        const audioUrl = await callBackend(backend, filePath, genText, abortController.signal);
+
+        // Step 3: Download result
+        setStep(3);
+        const audioResp = await fetch(audioUrl);
+        const audioBlob = await audioResp.blob();
+        const localUrl = URL.createObjectURL(audioBlob);
+
+        // Show result
+        document.getElementById('resultPlayer').src = localUrl;
+        document.getElementById('dlBtn').href = localUrl;
+
+        const tempAudio = new Audio(localUrl);
+        tempAudio.onloadedmetadata = () => {
+          document.getElementById('resultInfo').textContent =
+            `时长 ${tempAudio.duration.toFixed(1)}s · ${(audioBlob.size/1024).toFixed(0)}KB`;
+        };
+
+        resultArea.classList.add('show');
+        retryBox.classList.remove('show');
+        statusEl.classList.remove('show');
+        addHistory(localUrl, genText);
+        success = true;
+
+      } catch (e) {
+        lastError = e.message;
+        console.warn(`Backend ${backend.name} retry ${retry}:`, lastError);
+        
+        if (lastError === 'GPU_ERROR' || lastError.includes('GPU')) {
+          // ZeroGPU error - retryable
+          continue;
+        } else if (lastError === 'TIMEOUT') {
+          // Timeout - try next backend
+          break;
+        } else if (lastError === 'SSE_CONNECTION_ERROR') {
+          // Connection error - could be GPU or network, retry
+          continue;
+        } else if (lastError.includes('Upload failed')) {
+          // Upload issue - try next backend
+          break;
+        } else {
+          // Unknown error - retry
+          continue;
+        }
+      }
     }
-
-    // Download the audio
-    const audioUrl = audioData.url;
-    const audioResp = await fetch(audioUrl);
-    const audioBlob = await audioResp.blob();
-    const localUrl = URL.createObjectURL(audioBlob);
-
-    document.getElementById('resultPlayer').src = localUrl;
-    document.getElementById('dlBtn').href = localUrl;
-
-    const tempAudio = new Audio(localUrl);
-    tempAudio.onloadedmetadata = () => {
-      document.getElementById('resultInfo').textContent =
-        `时长 ${tempAudio.duration.toFixed(1)}s · ${(audioBlob.size/1024).toFixed(0)}KB`;
-    };
-
-    resultArea.classList.add('show');
-    statusEl.classList.remove('show');
-    retryHint.style.display = 'none';
-    addHistory(localUrl, genText);
-
-  } catch (e) {
-    console.error('Generation error:', e);
-    let msg = e.message || '未知错误';
-    if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed')) {
-      msg = '网络连接失败，HuggingFace服务可能暂时不可用，请稍后重试';
-    } else if (msg.includes('error') && msg.includes('null')) {
-      msg = 'AI服务GPU正在启动中，请等待30秒后重试';
-    } else if (msg.includes('429') || msg.includes('rate')) {
-      msg = '请求过于频繁，请等1-2分钟再试';
-    }
-    showError('生成失败：' + msg);
-    statusEl.classList.remove('show');
-    retryHint.style.display = 'none';
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '🚀 生成语音';
   }
+
+  if (!success) {
+    statusEl.classList.remove('show');
+    retryBox.classList.add('show');
+    document.getElementById('retryInfo').textContent = 
+      '❌ 所有AI服务器暂时繁忙。这是免费共享GPU，高峰期可能不稳定。请过几分钟再试。';
+    document.getElementById('retryBtn').disabled = false;
+  }
+
+  isGenerating = false;
+  btn.disabled = false;
+  btn.innerHTML = '🚀 生成语音';
 };
+
+function updateStatus(msg) {
+  const step2 = document.getElementById('step2');
+  step2.textContent = '⏳ ' + msg;
+  step2.className = 'step active';
+}
+
+function updateRetryBox(backendName, retry, delay) {
+  const retryBox = document.getElementById('retryBox');
+  const retryInfo = document.getElementById('retryInfo');
+  retryBox.classList.add('show');
+  retryInfo.textContent = `⚠️ GPU服务器繁忙 (${backendName})，第${retry + 1}次重试中，等待${delay/1000}秒...`;
+  document.getElementById('retryBtn').disabled = true;
+}
+
+function resetSteps() {
+  document.getElementById('step1').textContent = '⏳ 上传音频到AI服务器...';
+  document.getElementById('step1').className = 'step';
+  document.getElementById('step2').textContent = '⏳ AI正在生成语音...';
+  document.getElementById('step2').className = 'step';
+  document.getElementById('step3').textContent = '⏳ 下载结果...';
+  document.getElementById('step3').className = 'step';
+}
 
 function setStep(n) {
   for (let i = 1; i <= 3; i++) {
