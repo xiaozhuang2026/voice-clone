@@ -312,13 +312,8 @@ footer a { color: var(--accent2); text-decoration: none; }
   <div class="card">
     <div class="card-title">
       <span class="icon">📝</span> 第二步：输入文字
-      <span class="hint">参考文字 = 音频说的内容</span>
     </div>
-    <label style="font-size:13px;color:var(--text2);margin-bottom:6px;display:block">参考文字（音频里说的话）</label>
-    <textarea id="refText" placeholder="例如：大家好，我是小明，今天天气真不错。" oninput="updateCount('refText','refCount',500)"></textarea>
-    <div class="char-count"><span id="refCount">0</span>/500</div>
-
-    <label style="font-size:13px;color:var(--text2);margin:12px 0 6px;display:block">生成文字（想让AI说的话）✨</label>
+    <label style="font-size:13px;color:var(--text2);margin-bottom:6px;display:block">输入想让AI说的话 ✨</label>
     <textarea id="genText" placeholder="输入任意文字，AI会用同样的声音朗读出来..." oninput="updateCount('genText','genCount',2000)" style="min-height:100px"></textarea>
     <div class="char-count"><span id="genCount">0</span>/2000</div>
 
@@ -531,12 +526,7 @@ async function generate() {
     showError('请先录制或上传参考音频');
     return;
   }
-  const refText = document.getElementById('refText').value.trim();
   const genText = document.getElementById('genText').value.trim();
-  if (!refText) {
-    showError('请输入参考文字（音频里说的话）');
-    return;
-  }
   if (!genText) {
     showError('请输入想让AI说的文字');
     return;
@@ -575,7 +565,7 @@ async function generate() {
       body: JSON.stringify({
         data: [
           { path: audioPath, meta: { _type: 'gradio.FileData' } },
-          refText,
+          "",
           genText,
           true
         ]
