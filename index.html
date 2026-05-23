@@ -4,263 +4,80 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI语音克隆 - 免费文字转语音</title>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 <style>
-:root {
-  --bg: #0a0a0f;
-  --card: #12121a;
-  --card2: #1a1a28;
-  --border: #2a2a3a;
-  --accent: #6c5ce7;
-  --accent2: #a29bfe;
-  --green: #00b894;
-  --red: #e74c3c;
-  --text: #e8e8f0;
-  --text2: #8888a8;
-  --radius: 16px;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-.bg-glow {
-  position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(108,92,231,0.15) 0%, transparent 70%);
-  pointer-events: none; z-index: 0;
-}
-.container {
-  max-width: 720px; margin: 0 auto; padding: 20px 16px;
-  position: relative; z-index: 1;
-}
-header {
-  text-align: center; padding: 30px 0 10px;
-}
-header h1 {
-  font-size: 28px; font-weight: 700;
-  background: linear-gradient(135deg, var(--accent), var(--accent2), var(--green));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-header p { color: var(--text2); font-size: 14px; margin-top: 8px; }
-.badge {
-  display: inline-block; background: linear-gradient(135deg, var(--green), #00cec9);
-  color: #fff; font-size: 11px; font-weight: 600; padding: 3px 10px;
-  border-radius: 20px; margin-top: 10px;
-}
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-top: 16px;
-}
-.card-title {
-  font-size: 15px; font-weight: 600; margin-bottom: 14px;
-  display: flex; align-items: center; gap: 8px;
-}
-.card-title .icon { font-size: 20px; }
-.card-title .hint {
-  font-size: 12px; color: var(--text2); font-weight: 400; margin-left: auto;
-}
-
-/* Tabs */
-.tabs {
-  display: flex; gap: 8px; margin-bottom: 16px;
-}
-.tab {
-  flex: 1; padding: 10px; text-align: center; border-radius: 10px;
-  background: var(--card2); border: 1px solid var(--border);
-  cursor: pointer; font-size: 13px; color: var(--text2);
-  transition: all 0.2s;
-}
-.tab.active {
-  background: var(--accent); color: #fff; border-color: var(--accent);
-}
-
-/* Record area */
-.record-area {
-  display: none; flex-direction: column; align-items: center;
-  padding: 20px 0;
-}
-.record-area.active { display: flex; }
-.record-btn {
-  width: 80px; height: 80px; border-radius: 50%;
-  background: var(--red); border: 4px solid rgba(231,76,60,0.3);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s; position: relative;
-}
-.record-btn:hover { transform: scale(1.05); }
-.record-btn.recording {
-  background: #c0392b;
-  animation: pulse 1s infinite;
-}
-@keyframes pulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.4); }
-  50% { box-shadow: 0 0 0 20px rgba(231,76,60,0); }
-}
-.record-btn svg { width: 32px; height: 32px; fill: #fff; }
-.record-time {
-  margin-top: 12px; font-size: 24px; font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.record-hint { color: var(--text2); font-size: 12px; margin-top: 6px; }
-
-/* Waveform canvas */
-#waveCanvas {
-  width: 100%; height: 60px; margin-top: 12px; border-radius: 8px;
-  background: var(--card2);
-}
-
-/* Upload area */
-.upload-area {
-  display: none; flex-direction: column; align-items: center;
-  padding: 30px 0;
-}
-.upload-area.active { display: flex; }
-.drop-zone {
-  width: 100%; border: 2px dashed var(--border); border-radius: 12px;
-  padding: 30px; text-align: center; cursor: pointer;
-  transition: all 0.2s;
-}
-.drop-zone:hover { border-color: var(--accent); background: rgba(108,92,231,0.05); }
-.drop-zone .icon { font-size: 36px; margin-bottom: 8px; }
-.drop-zone p { color: var(--text2); font-size: 13px; }
-.drop-zone .formats { font-size: 11px; margin-top: 4px; color: #555; }
-
-/* Audio preview */
-.audio-preview {
-  display: none; align-items: center; gap: 10px;
-  margin-top: 12px; padding: 10px 14px;
-  background: var(--card2); border-radius: 10px;
-}
-.audio-preview.show { display: flex; }
-.audio-preview audio { flex: 1; height: 36px; }
-.btn-sm {
-  padding: 6px 12px; border-radius: 8px; border: none;
-  font-size: 12px; cursor: pointer; background: var(--red);
-  color: #fff; font-weight: 500;
-}
-.btn-sm:hover { opacity: 0.8; }
-
-/* Text inputs */
-textarea {
-  width: 100%; background: var(--card2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 12px 14px; color: var(--text);
-  font-size: 14px; resize: vertical; min-height: 70px;
-  font-family: inherit; line-height: 1.5;
-  transition: border-color 0.2s;
-}
-textarea:focus { outline: none; border-color: var(--accent); }
-textarea::placeholder { color: #555; }
-.char-count {
-  text-align: right; font-size: 11px; color: var(--text2); margin-top: 4px;
-}
-
-/* Generate button */
-.gen-btn {
-  width: 100%; padding: 16px; border: none; border-radius: 12px;
-  font-size: 16px; font-weight: 600; cursor: pointer;
-  background: linear-gradient(135deg, var(--accent), #7c6cf0);
-  color: #fff; margin-top: 16px;
-  transition: all 0.2s;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.gen-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(108,92,231,0.3); }
-.gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.gen-btn .spinner {
-  width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff; border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Result */
-.result-area {
-  display: none; margin-top: 16px;
-}
-.result-area.show { display: block; }
-.result-card {
-  background: var(--card); border: 1px solid var(--green);
-  border-radius: var(--radius); padding: 20px;
-}
-.result-card .label {
-  font-size: 12px; color: var(--green); font-weight: 600;
-  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
-}
-.result-card audio { width: 100%; margin: 10px 0; }
-.dl-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--green);
-  background: transparent; color: var(--green);
-  font-size: 13px; cursor: pointer; text-decoration: none;
-  transition: all 0.2s;
-}
-.dl-btn:hover { background: var(--green); color: #fff; }
-
-/* Status */
-.status {
-  text-align: center; padding: 20px; color: var(--text2);
-  font-size: 13px; display: none;
-}
-.status.show { display: block; }
-.status .step { margin: 6px 0; }
-.status .step.active { color: var(--accent2); }
-.status .step.done { color: var(--green); }
-
-/* Error */
-.error-msg {
-  display: none; padding: 14px; margin-top: 12px;
-  background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3);
-  border-radius: 10px; color: var(--red); font-size: 13px;
-}
-.error-msg.show { display: block; }
-
-/* Footer */
-footer {
-  text-align: center; padding: 30px 0 20px;
-  color: var(--text2); font-size: 12px;
-}
-footer a { color: var(--accent2); text-decoration: none; }
-
-/* Presets */
-.presets {
-  display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;
-}
-.preset-btn {
-  padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
-  background: var(--card2); color: var(--text2); font-size: 12px;
-  cursor: pointer; transition: all 0.2s;
-}
-.preset-btn:hover { border-color: var(--accent); color: var(--accent2); }
-
-/* Volume control */
-.volume-row {
-  display: flex; align-items: center; gap: 10px; margin-top: 12px;
-  font-size: 12px; color: var(--text2);
-}
-.volume-row input[type=range] {
-  flex: 1; accent-color: var(--accent);
-}
-
-/* History */
-.history { margin-top: 16px; }
-.history-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px; margin-top: 8px;
-  background: var(--card2); border-radius: 10px;
-}
-.history-item audio { flex: 1; height: 32px; }
-.history-item .time { font-size: 11px; color: var(--text2); white-space: nowrap; }
-
-@media (max-width: 480px) {
-  header h1 { font-size: 22px; }
-  .card { padding: 14px; }
-  .gen-btn { font-size: 14px; padding: 14px; }
-}
+:root{--bg:#0a0a0f;--card:#12121a;--card2:#1a1a28;--border:#2a2a3a;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e74c3c;--text:#e8e8f0;--text2:#8888a8;--radius:16px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.bg-glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(108,92,231,.15) 0%,transparent 70%);pointer-events:none;z-index:0}
+.container{max-width:720px;margin:0 auto;padding:20px 16px;position:relative;z-index:1}
+header{text-align:center;padding:30px 0 10px}
+header h1{font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+header p{color:var(--text2);font-size:14px;margin-top:8px}
+.badge{display:inline-block;background:linear-gradient(135deg,var(--green),#00cec9);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-top:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:16px}
+.card-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title .icon{font-size:20px}
+.card-title .hint{font-size:12px;color:var(--text2);font-weight:400;margin-left:auto}
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab{flex:1;padding:10px;text-align:center;border-radius:10px;background:var(--card2);border:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--text2);transition:all .2s}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.record-area{display:none;flex-direction:column;align-items:center;padding:20px 0}
+.record-area.active{display:flex}
+.record-btn{width:80px;height:80px;border-radius:50%;background:var(--red);border:4px solid rgba(231,76,60,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative}
+.record-btn:hover{transform:scale(1.05)}
+.record-btn.recording{background:#c0392b;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,.4)}50%{box-shadow:0 0 0 20px rgba(231,76,60,0)}}
+.record-btn svg{width:32px;height:32px;fill:#fff}
+.record-time{margin-top:12px;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.record-hint{color:var(--text2);font-size:12px;margin-top:6px}
+#waveCanvas{width:100%;height:60px;margin-top:12px;border-radius:8px;background:var(--card2)}
+.upload-area{display:none;flex-direction:column;align-items:center;padding:30px 0}
+.upload-area.active{display:flex}
+.drop-zone{width:100%;border:2px dashed var(--border);border-radius:12px;padding:30px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover{border-color:var(--accent);background:rgba(108,92,231,.05)}
+.drop-zone .icon{font-size:36px;margin-bottom:8px}
+.drop-zone p{color:var(--text2);font-size:13px}
+.drop-zone .formats{font-size:11px;margin-top:4px;color:#555}
+.audio-preview{display:none;align-items:center;gap:10px;margin-top:12px;padding:10px 14px;background:var(--card2);border-radius:10px}
+.audio-preview.show{display:flex}
+.audio-preview audio{flex:1;height:36px}
+.btn-sm{padding:6px 12px;border-radius:8px;border:none;font-size:12px;cursor:pointer;background:var(--red);color:#fff;font-weight:500}
+.btn-sm:hover{opacity:.8}
+textarea{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;resize:vertical;min-height:120px;font-family:inherit;line-height:1.5;transition:border-color .2s}
+textarea:focus{outline:none;border-color:var(--accent)}
+textarea::placeholder{color:#555}
+.char-count{text-align:right;font-size:11px;color:var(--text2);margin-top:4px}
+.gen-btn{width:100%;padding:16px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,var(--accent),#7c6cf0);color:#fff;margin-top:16px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.gen-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 25px rgba(108,92,231,.3)}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed}
+.gen-btn .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.result-area{display:none;margin-top:16px}
+.result-area.show{display:block}
+.result-card{background:var(--card);border:1px solid var(--green);border-radius:var(--radius);padding:20px}
+.result-card .label{font-size:12px;color:var(--green);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.result-card audio{width:100%;margin:10px 0}
+.dl-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:1px solid var(--green);background:transparent;color:var(--green);font-size:13px;cursor:pointer;text-decoration:none;transition:all .2s}
+.dl-btn:hover{background:var(--green);color:#fff}
+.status{text-align:center;padding:20px;color:var(--text2);font-size:13px;display:none}
+.status.show{display:block}
+.status .step{margin:6px 0}
+.status .step.active{color:var(--accent2)}
+.status .step.done{color:var(--green)}
+.error-msg{display:none;padding:14px;margin-top:12px;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:10px;color:var(--red);font-size:13px}
+.error-msg.show{display:block}
+.presets{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.preset-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text2);font-size:12px;cursor:pointer;transition:all .2s}
+.preset-btn:hover{border-color:var(--accent);color:var(--accent2)}
+footer{text-align:center;padding:30px 0 20px;color:var(--text2);font-size:12px}
+footer a{color:var(--accent2);text-decoration:none}
+.history{margin-top:16px}
+.history-item{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-top:8px;background:var(--card2);border-radius:10px}
+.history-item audio{flex:1;height:32px}
+.history-item .time{font-size:11px;color:var(--text2);white-space:nowrap}
+.retry-hint{font-size:12px;color:var(--text2);margin-top:8px;text-align:center}
+@media(max-width:480px){header h1{font-size:22px}.card{padding:14px}.gen-btn{font-size:14px;padding:14px}}
 </style>
 </head>
 <body>
@@ -268,8 +85,8 @@ footer a { color: var(--accent2); text-decoration: none; }
 <div class="container">
   <header>
     <h1>🎙️ AI语音克隆</h1>
-    <p>上传或录制参考音频，输入任意文字，AI模仿声音朗读</p>
-    <span class="badge">✨ 完全免费 · 基于F5-TTS · 无时长限制</span>
+    <p>上传或录制参考音频，输入文字，AI模仿声音朗读</p>
+    <span class="badge">✨ 完全免费 · 无时长限制</span>
   </header>
 
   <!-- Step 1: Reference Audio -->
@@ -282,7 +99,6 @@ footer a { color: var(--accent2); text-decoration: none; }
       <div class="tab active" onclick="switchTab('record')">录制音频</div>
       <div class="tab" onclick="switchTab('upload')">上传文件</div>
     </div>
-
     <div id="recordTab" class="record-area active">
       <div class="record-btn" id="recBtn" onclick="toggleRecord()">
         <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
@@ -291,7 +107,6 @@ footer a { color: var(--accent2); text-decoration: none; }
       <div class="record-hint" id="recHint">点击开始录制</div>
       <canvas id="waveCanvas"></canvas>
     </div>
-
     <div id="uploadTab" class="upload-area">
       <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
         <div class="icon">📁</div>
@@ -300,7 +115,6 @@ footer a { color: var(--accent2); text-decoration: none; }
       </div>
       <input type="file" id="fileInput" accept="audio/*" style="display:none" onchange="handleFile(this.files[0])">
     </div>
-
     <div class="audio-preview" id="refPreview">
       <span style="font-size:13px">✅ 参考音频</span>
       <audio id="refPlayer" controls></audio>
@@ -308,32 +122,30 @@ footer a { color: var(--accent2); text-decoration: none; }
     </div>
   </div>
 
-  <!-- Step 2: Texts -->
+  <!-- Step 2: Text -->
   <div class="card">
     <div class="card-title">
       <span class="icon">📝</span> 第二步：输入文字
     </div>
     <label style="font-size:13px;color:var(--text2);margin-bottom:6px;display:block">输入想让AI说的话 ✨</label>
-    <textarea id="genText" placeholder="输入任意文字，AI会用同样的声音朗读出来..." oninput="updateCount('genText','genCount',2000)" style="min-height:100px"></textarea>
+    <textarea id="genText" placeholder="输入任意文字，AI会用同样的声音朗读出来..." oninput="updateCount('genText','genCount',2000)"></textarea>
     <div class="char-count"><span id="genCount">0</span>/2000</div>
-
     <div class="presets">
       <span style="font-size:12px;color:var(--text2)">试试：</span>
       <button class="preset-btn" onclick="setPreset('今天我给大家讲一个故事，从前有一座山，山上有座庙，庙里有个老和尚和一个小和尚。')">故事</button>
       <button class="preset-btn" onclick="setPreset('各位观众朋友们大家好，欢迎收看今天的节目。在这个美好的日子里，我们来聊一聊最近发生的新鲜事。')">播报</button>
       <button class="preset-btn" onclick="setPreset('春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。')">古诗</button>
-      <button class="preset-btn" onclick="setPreset('Hello, this is a voice cloning demo. The AI will mimic the reference voice and say whatever text you provide. Amazing, isn\'t it?')">English</button>
+      <button class="preset-btn" onclick="setPreset('Hello, this is a voice cloning demo. The AI will mimic the reference voice and say whatever text you provide.')">English</button>
     </div>
   </div>
 
   <!-- Generate -->
-  <button class="gen-btn" id="genBtn" onclick="generate()">
-    🚀 生成语音
-  </button>
+  <button class="gen-btn" id="genBtn" onclick="generate()">🚀 生成语音</button>
+  <p class="retry-hint" id="retryHint" style="display:none">⏳ AI服务需要启动GPU，首次可能需要等待1-2分钟...</p>
 
   <div class="status" id="status">
     <div class="step" id="step1">⏳ 上传音频...</div>
-    <div class="step" id="step2">⏳ AI生成中...</div>
+    <div class="step" id="step2">⏳ AI生成中（可能需要1-2分钟）...</div>
     <div class="step" id="step3">⏳ 下载结果...</div>
   </div>
 
@@ -344,9 +156,7 @@ footer a { color: var(--accent2); text-decoration: none; }
       <div class="label">✅ 生成完成！</div>
       <audio id="resultPlayer" controls></audio>
       <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-        <a class="dl-btn" id="dlBtn" download="ai-voice.wav">
-          ⬇️ 下载音频
-        </a>
+        <a class="dl-btn" id="dlBtn" download="ai-voice.wav">⬇️ 下载音频</a>
         <span id="resultInfo" style="font-size:12px;color:var(--text2)"></span>
       </div>
     </div>
@@ -366,8 +176,11 @@ footer a { color: var(--accent2); text-decoration: none; }
   </footer>
 </div>
 
-<script>
-const API_BASE = 'https://mrfakename-e2-f5-tts.hf.space';
+<script type="module">
+// Import Gradio client
+import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+const SPACE_URL = "https://mrfakename-e2-f5-tts.hf.space/";
 let refAudioBlob = null;
 let refAudioUrl = null;
 let mediaRecorder = null;
@@ -378,7 +191,8 @@ let recordTimer = null;
 let recordSeconds = 0;
 let historyItems = [];
 
-function switchTab(tab) {
+// Make functions global
+window.switchTab = function(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('recordTab').classList.remove('active');
   document.getElementById('uploadTab').classList.remove('active');
@@ -389,43 +203,39 @@ function switchTab(tab) {
     document.querySelectorAll('.tab')[1].classList.add('active');
     document.getElementById('uploadTab').classList.add('active');
   }
-}
+};
 
-function updateCount(inputId, countId, max) {
+window.updateCount = function(inputId, countId, max) {
   const len = document.getElementById(inputId).value.length;
   const el = document.getElementById(countId);
   el.textContent = len;
   el.style.color = len > max * 0.9 ? 'var(--red)' : '';
-}
+};
 
-function setPreset(text) {
+window.setPreset = function(text) {
   document.getElementById('genText').value = text;
   updateCount('genText', 'genCount', 2000);
-}
+};
 
 function showRefPreview(url) {
   refAudioUrl = url;
-  const player = document.getElementById('refPlayer');
-  player.src = url;
+  document.getElementById('refPlayer').src = url;
   document.getElementById('refPreview').classList.add('show');
 }
 
-function clearRef() {
+window.clearRef = function() {
   refAudioBlob = null;
   refAudioUrl = null;
   document.getElementById('refPreview').classList.remove('show');
   document.getElementById('refPlayer').src = '';
   document.getElementById('fileInput').value = '';
-}
+};
 
 // === Recording ===
-async function toggleRecord() {
-  if (isRecording) {
-    stopRecord();
-  } else {
-    startRecord();
-  }
-}
+window.toggleRecord = async function() {
+  if (isRecording) stopRecord();
+  else await startRecord();
+};
 
 async function startRecord() {
   try {
@@ -435,7 +245,6 @@ async function startRecord() {
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     source.connect(analyser);
-
     mediaRecorder = new MediaRecorder(stream);
     const chunks = [];
     mediaRecorder.ondataavailable = e => chunks.push(e.data);
@@ -443,8 +252,7 @@ async function startRecord() {
       stream.getTracks().forEach(t => t.stop());
       refAudioBlob = new Blob(chunks, { type: 'audio/webm' });
       showRefPreview(URL.createObjectURL(refAudioBlob));
-      audioCtx.close();
-      audioCtx = null;
+      if (audioCtx) { audioCtx.close(); audioCtx = null; }
     };
     mediaRecorder.start();
     isRecording = true;
@@ -455,7 +263,7 @@ async function startRecord() {
       recordSeconds++;
       const m = Math.floor(recordSeconds / 60);
       const s = recordSeconds % 60;
-      document.getElementById('recTime').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+      document.getElementById('recTime').textContent = `${m}:${s.toString().padStart(2,'0')}`;
     }, 1000);
     drawWave();
   } catch (e) {
@@ -480,7 +288,6 @@ function drawWave() {
   const bufLen = analyser.frequencyBinCount;
   const data = new Uint8Array(bufLen);
   analyser.getByteTimeDomainData(data);
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.lineWidth = 2;
   ctx.strokeStyle = '#6c5ce7';
@@ -490,8 +297,7 @@ function drawWave() {
   for (let i = 0; i < bufLen; i++) {
     const v = data[i] / 128.0;
     const y = (v * canvas.height) / 2;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     x += sliceW;
   }
   ctx.lineTo(canvas.width, canvas.height / 2);
@@ -504,136 +310,109 @@ const dropZone = document.getElementById('dropZone');
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent)'; });
 dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
 dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.style.borderColor = '';
+  e.preventDefault(); dropZone.style.borderColor = '';
   if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
 });
 
-function handleFile(file) {
+window.handleFile = function(file) {
   if (!file) return;
   refAudioBlob = file;
   showRefPreview(URL.createObjectURL(file));
-}
+};
 
-// === Generate ===
-async function generate() {
+// === Generate with Gradio Client ===
+window.generate = async function() {
   const btn = document.getElementById('genBtn');
   const statusEl = document.getElementById('status');
   const errorEl = document.getElementById('errorMsg');
   const resultArea = document.getElementById('resultArea');
+  const retryHint = document.getElementById('retryHint');
 
-  if (!refAudioBlob) {
-    showError('请先录制或上传参考音频');
-    return;
-  }
+  if (!refAudioBlob) { showError('请先录制或上传参考音频'); return; }
   const genText = document.getElementById('genText').value.trim();
-  if (!genText) {
-    showError('请输入想让AI说的文字');
-    return;
-  }
+  if (!genText) { showError('请输入想让AI说的文字'); return; }
 
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> 生成中...';
   statusEl.classList.add('show');
   errorEl.classList.remove('show');
   resultArea.classList.remove('show');
+  retryHint.style.display = 'block';
   setStep(1);
 
   try {
-    // Step 1: Upload audio
+    // Connect to Gradio space
     setStep(1);
-    const formData = new FormData();
-    const ext = refAudioBlob.type?.includes('webm') ? 'webm' : 
-                refAudioBlob.type?.includes('mp3') ? 'mp3' : 
-                refAudioBlob.type?.includes('m4a') ? 'm4a' : 'wav';
-    const file = refAudioBlob instanceof File ? refAudioBlob : new File([refAudioBlob], `ref.${ext}`, { type: refAudioBlob.type || 'audio/wav' });
-    formData.append('files', file);
-    
-    const uploadResp = await fetch(`${API_BASE}/gradio_api/upload`, {
-      method: 'POST',
-      body: formData
+    const client = await Client.connect(SPACE_URL, {
+      hf_token: undefined // anonymous
     });
-    const uploadPaths = await uploadResp.json();
-    if (!uploadPaths || !uploadPaths[0]) throw new Error('上传失败');
-    const audioPath = uploadPaths[0];
 
-    // Step 2: Call API
+    // Submit the job
     setStep(2);
-    const callResp = await fetch(`${API_BASE}/gradio_api/call/predict`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        data: [
-          { path: audioPath, meta: { _type: 'gradio.FileData' } },
-          "",
-          genText,
-          true
-        ]
-      })
+    const result = await client.predict("/predict", {
+      ref_audio: refAudioBlob,
+      ref_text: "",
+      gen_text: genText,
+      remove_silence: true,
     });
-    const callData = await callResp.json();
-    if (!callData.event_id) throw new Error('API调用失败: ' + JSON.stringify(callData));
-    
-    // Step 3: Poll result
-    setStep(3);
-    const resultUrl = `${API_BASE}/gradio_api/call/predict/${callData.event_id}`;
-    const resultResp = await fetch(resultUrl);
-    const resultText = await resultResp.text();
-    
-    // Parse SSE
-    let audioResult = null;
-    for (const line of resultText.split('\n')) {
-      if (line.startsWith('data: ')) {
-        try {
-          const d = JSON.parse(line.slice(6));
-          if (d && d[0] && d[0].url) {
-            audioResult = d[0];
-          }
-        } catch(e) {}
-      }
-    }
-    if (!audioResult) throw new Error('生成失败，请重试');
 
-    // Step 4: Download result
-    const audioUrl = audioResult.url;
+    // Get result
+    setStep(3);
+    const audioData = result.data[0];
+    
+    if (!audioData || !audioData.url) {
+      throw new Error('生成失败，API未返回音频');
+    }
+
+    // Download the audio
+    const audioUrl = audioData.url;
     const audioResp = await fetch(audioUrl);
     const audioBlob = await audioResp.blob();
     const localUrl = URL.createObjectURL(audioBlob);
-    
-    const player = document.getElementById('resultPlayer');
-    player.src = localUrl;
+
+    document.getElementById('resultPlayer').src = localUrl;
     document.getElementById('dlBtn').href = localUrl;
-    
-    // Show duration
+
     const tempAudio = new Audio(localUrl);
     tempAudio.onloadedmetadata = () => {
-      const dur = tempAudio.duration;
-      document.getElementById('resultInfo').textContent = 
-        `时长 ${dur.toFixed(1)}s · ${(audioBlob.size/1024).toFixed(0)}KB`;
+      document.getElementById('resultInfo').textContent =
+        `时长 ${tempAudio.duration.toFixed(1)}s · ${(audioBlob.size/1024).toFixed(0)}KB`;
     };
-    
+
     resultArea.classList.add('show');
     statusEl.classList.remove('show');
-    addHistory(localUrl);
-    
+    retryHint.style.display = 'none';
+    addHistory(localUrl, genText);
+
   } catch (e) {
-    showError('生成失败：' + e.message);
+    console.error('Generation error:', e);
+    let msg = e.message || '未知错误';
+    if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed')) {
+      msg = '网络连接失败，HuggingFace服务可能暂时不可用，请稍后重试';
+    } else if (msg.includes('error') && msg.includes('null')) {
+      msg = 'AI服务GPU正在启动中，请等待30秒后重试';
+    } else if (msg.includes('429') || msg.includes('rate')) {
+      msg = '请求过于频繁，请等1-2分钟再试';
+    }
+    showError('生成失败：' + msg);
     statusEl.classList.remove('show');
+    retryHint.style.display = 'none';
   } finally {
     btn.disabled = false;
     btn.innerHTML = '🚀 生成语音';
   }
-}
+};
 
 function setStep(n) {
   for (let i = 1; i <= 3; i++) {
     const el = document.getElementById(`step${i}`);
-    el.className = 'step';
     if (i < n) {
       el.className = 'step done';
       el.textContent = el.textContent.replace('⏳', '✅');
     } else if (i === n) {
       el.className = 'step active';
+    } else {
+      el.className = 'step';
     }
   }
 }
@@ -644,12 +423,8 @@ function showError(msg) {
   el.classList.add('show');
 }
 
-function addHistory(url) {
-  historyItems.unshift({
-    url,
-    time: new Date().toLocaleTimeString(),
-    text: document.getElementById('genText').value.slice(0, 30) + '...'
-  });
+function addHistory(url, text) {
+  historyItems.unshift({ url, time: new Date().toLocaleTimeString(), text: text.slice(0, 30) + '...' });
   if (historyItems.length > 5) historyItems.pop();
   renderHistory();
 }
@@ -657,17 +432,16 @@ function addHistory(url) {
 function renderHistory() {
   const area = document.getElementById('historyArea');
   const list = document.getElementById('historyList');
-  if (historyItems.length === 0) { area.style.display = 'none'; return; }
+  if (!historyItems.length) { area.style.display = 'none'; return; }
   area.style.display = 'block';
-  list.innerHTML = historyItems.map((h, i) => `
+  list.innerHTML = historyItems.map(h => `
     <div class="history-item">
       <span class="time">${h.time}</span>
       <audio src="${h.url}" controls preload="none"></audio>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-// Drag and drop for whole page
+// Global drag-drop
 document.body.addEventListener('dragover', e => e.preventDefault());
 document.body.addEventListener('drop', e => {
   e.preventDefault();
