@@ -9,11 +9,9 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', -apple-system, sans-serif;
-      background: #0a0a0f;
-      color: #e8e8ed;
+      background: #0a0a0f; color: #e8e8ed;
       min-height: 100vh;
     }
-
     .bg-effect {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: 
@@ -21,142 +19,164 @@
         radial-gradient(ellipse 500px 300px at 80% 70%, rgba(78,205,196,0.06), transparent);
       pointer-events: none; z-index: 0;
     }
-
-    .container {
-      max-width: 750px; margin: 0 auto; padding: 20px;
-      position: relative; z-index: 1;
-    }
-
-    header { text-align: center; padding: 40px 0 30px; }
+    .container { max-width: 750px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+    header { text-align: center; padding: 30px 0 20px; }
     header h1 {
-      font-size: 2rem; font-weight: 700;
+      font-size: 1.8rem; font-weight: 700;
       background: linear-gradient(135deg, #fff, #7c5cfc, #4ecdc4);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-    header p { color: #8888a0; font-size: 0.95rem; margin-top: 8px; line-height: 1.6; }
+    header p { color: #8888a0; font-size: 0.9rem; margin-top: 6px; }
 
-    /* Waveform */
-    .waveform {
-      display: flex; align-items: center; gap: 3px;
-      height: 36px; justify-content: center; margin-bottom: 16px;
-    }
+    .waveform { display: flex; align-items: center; gap: 3px; height: 36px; justify-content: center; margin-bottom: 12px; }
     .waveform .bar {
       width: 3px; border-radius: 3px;
       background: linear-gradient(to top, #7c5cfc, #4ecdc4);
       animation: wave 1.2s ease-in-out infinite;
     }
-    @keyframes wave {
-      0%, 100% { height: 6px; opacity: 0.4; }
-      50% { height: 28px; opacity: 1; }
+    @keyframes wave { 0%,100%{height:6px;opacity:0.4} 50%{height:28px;opacity:1} }
+
+    /* Tab nav */
+    .tabs { display: flex; gap: 4px; background: #12121a; border-radius: 12px; padding: 4px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08); }
+    .tab-btn {
+      flex: 1; padding: 11px 14px; border: none; border-radius: 10px;
+      background: transparent; color: #8888a0;
+      font-family: inherit; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; transition: all 0.3s; text-align: center;
+    }
+    .tab-btn:hover { color: #e8e8ed; }
+    .tab-btn.active { background: #7c5cfc; color: #fff; box-shadow: 0 4px 15px rgba(124,92,252,0.3); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Cards */
+    .card {
+      background: #12121a; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 22px; margin-bottom: 14px; transition: border-color 0.3s;
+    }
+    .card:hover { border-color: rgba(124,92,252,0.3); }
+    .card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 10px; }
+
+    /* Recorder */
+    .recorder {
+      text-align: center; padding: 20px;
+    }
+    .rec-btn {
+      width: 80px; height: 80px; border-radius: 50%; border: 3px solid #7c5cfc;
+      background: transparent; cursor: pointer; transition: all 0.3s;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: #7c5cfc;
+    }
+    .rec-btn:hover { background: rgba(124,92,252,0.1); transform: scale(1.05); }
+    .rec-btn.recording {
+      border-color: #ff6b6b; color: #ff6b6b;
+      animation: pulse 1s ease-in-out infinite;
+      background: rgba(255,107,107,0.1);
+    }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,0.4)} 50%{box-shadow:0 0 0 15px rgba(255,107,107,0)} }
+
+    .rec-status { margin-top: 12px; font-size: 0.9rem; color: #8888a0; }
+    .rec-time { font-size: 1.8rem; font-weight: 700; color: #e8e8ed; margin: 8px 0; font-variant-numeric: tabular-nums; }
+
+    .audio-player {
+      width: 100%; margin-top: 12px; border-radius: 8px;
+      background: #1a1a25;
     }
 
-    /* Best choice banner */
-    .best-banner {
-      background: linear-gradient(135deg, rgba(124,92,252,0.15), rgba(78,205,196,0.1));
-      border: 1px solid rgba(124,92,252,0.25);
-      border-radius: 14px; padding: 20px;
-      margin-bottom: 24px; text-align: center;
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 22px; border: none; border-radius: 10px;
+      font-family: inherit; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; transition: all 0.3s; text-decoration: none; color: #fff;
     }
-    .best-banner .label {
-      font-size: 0.75rem; font-weight: 700; color: #7c5cfc;
-      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
-    }
-    .best-banner h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 6px; }
-    .best-banner p { color: #8888a0; font-size: 0.85rem; line-height: 1.5; margin-bottom: 14px; }
-    .best-banner .btn-go {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 14px 32px; border: none; border-radius: 12px;
+    .btn-primary {
       background: linear-gradient(135deg, #7c5cfc, #5c3cfc);
-      color: #fff; font-family: inherit; font-size: 1rem; font-weight: 600;
-      cursor: pointer; text-decoration: none;
-      box-shadow: 0 4px 20px rgba(124,92,252,0.35);
-      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(124,92,252,0.3);
     }
-    .best-banner .btn-go:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 25px rgba(124,92,252,0.45);
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,92,252,0.4); }
+    .btn-secondary {
+      background: #1a1a25; border: 1px solid rgba(255,255,255,0.08); color: #e8e8ed;
+    }
+    .btn-secondary:hover { border-color: #7c5cfc; }
+    .btn-success {
+      background: linear-gradient(135deg, #4ecdc4, #2ea89a);
+      box-shadow: 0 4px 15px rgba(78,205,196,0.3);
+    }
+    .btn-block { width: 100%; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .btn-row .btn { flex: 1; min-width: 120px; }
+
+    /* Live waveform during recording */
+    .live-wave {
+      display: flex; align-items: center; justify-content: center; gap: 2px;
+      height: 40px; margin: 12px 0;
+    }
+    .live-wave .bar {
+      width: 4px; border-radius: 4px; background: #ff6b6b;
+      transition: height 0.05s ease;
     }
 
-    /* Tool list */
+    /* Tool cards */
     .section-title {
-      font-size: 0.8rem; font-weight: 600; color: #8888a0;
+      font-size: 0.78rem; font-weight: 600; color: #8888a0;
       text-transform: uppercase; letter-spacing: 1px;
-      margin: 30px 0 14px; padding-left: 4px;
+      margin: 24px 0 12px; padding-left: 4px;
     }
-
     .tool-card {
-      background: #12121a;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px; padding: 20px;
-      margin-bottom: 12px; cursor: pointer;
-      transition: all 0.3s; text-decoration: none; display: block; color: inherit;
-      position: relative; overflow: hidden;
+      background: #12121a; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 18px; margin-bottom: 10px;
+      cursor: pointer; transition: all 0.3s; text-decoration: none; display: block; color: inherit;
+      display: flex; align-items: center; gap: 14px;
     }
-    .tool-card:hover {
-      border-color: rgba(124,92,252,0.4);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(124,92,252,0.12);
-    }
-    .tool-card .top { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
-    .tool-card .icon { font-size: 1.8rem; }
-    .tool-card .info h3 { font-size: 1.05rem; font-weight: 600; }
-    .tool-card .info .url { font-size: 0.75rem; color: #666; }
-    .tool-card .desc { color: #8888a0; font-size: 0.85rem; line-height: 1.5; }
-    .tool-card .tags { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .tool-card:hover { border-color: rgba(124,92,252,0.4); transform: translateY(-1px); }
+    .tool-card .icon { font-size: 1.6rem; flex-shrink: 0; }
+    .tool-card .info h4 { font-size: 0.95rem; font-weight: 600; }
+    .tool-card .info p { color: #8888a0; font-size: 0.8rem; margin-top: 2px; }
+    .tool-card .arrow { margin-left: auto; color: #555; font-size: 1.1rem; flex-shrink: 0; }
+    .tool-card:hover .arrow { color: #7c5cfc; }
+
     .tag {
-      padding: 3px 10px; border-radius: 20px;
-      font-size: 0.72rem; font-weight: 600;
+      display: inline-block; padding: 2px 8px; border-radius: 20px;
+      font-size: 0.7rem; font-weight: 600; margin-top: 6px; margin-right: 4px;
     }
     .tag-green { background: rgba(78,205,196,0.12); color: #4ecdc4; }
     .tag-purple { background: rgba(124,92,252,0.12); color: #7c5cfc; }
     .tag-yellow { background: rgba(255,217,61,0.12); color: #ffd93d; }
-    .tag-red { background: rgba(255,107,107,0.12); color: #ff6b6b; }
-
-    .tool-card .arrow {
-      position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-      color: #555; font-size: 1.2rem; transition: color 0.3s;
-    }
-    .tool-card:hover .arrow { color: #7c5cfc; }
 
     /* Steps */
-    .steps-card {
-      background: #12121a;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px; padding: 24px; margin: 20px 0;
-    }
-    .steps-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; }
-    .step {
-      display: flex; gap: 14px; margin-bottom: 16px;
-    }
+    .step { display: flex; gap: 12px; margin-bottom: 14px; }
     .step:last-child { margin-bottom: 0; }
     .step-num {
-      width: 32px; height: 32px; flex-shrink: 0;
+      width: 30px; height: 30px; flex-shrink: 0;
       border-radius: 8px; display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.85rem;
-      background: linear-gradient(135deg, #7c5cfc, #5c3cfc);
-      color: #fff;
+      font-weight: 700; font-size: 0.8rem;
+      background: linear-gradient(135deg, #7c5cfc, #5c3cfc); color: #fff;
     }
-    .step-text h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
-    .step-text p { color: #8888a0; font-size: 0.82rem; line-height: 1.5; }
+    .step-text h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+    .step-text p { color: #8888a0; font-size: 0.8rem; line-height: 1.5; }
 
-    /* Warning */
     .warn-box {
-      background: rgba(255,107,107,0.06);
-      border: 1px solid rgba(255,107,107,0.15);
-      border-radius: 12px; padding: 16px; margin: 20px 0;
-      font-size: 0.85rem; color: #cc8888; line-height: 1.6;
+      background: rgba(255,107,107,0.06); border: 1px solid rgba(255,107,107,0.15);
+      border-radius: 12px; padding: 14px; margin: 16px 0;
+      font-size: 0.82rem; color: #cc8888; line-height: 1.6;
     }
     .warn-box strong { color: #ff6b6b; }
 
-    footer {
-      text-align: center; padding: 30px 0 20px;
-      color: #555; font-size: 0.78rem;
+    footer { text-align: center; padding: 24px 0 16px; color: #555; font-size: 0.75rem; }
+
+    /* Hidden file input */
+    .file-input-wrap { position: relative; margin-top: 14px; }
+    .file-input-wrap input[type="file"] {
+      position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; top: 0; left: 0;
     }
 
     @media (max-width: 600px) {
-      header h1 { font-size: 1.5rem; }
-      .tool-card .arrow { display: none; }
+      header h1 { font-size: 1.4rem; }
+      .rec-btn { width: 70px; height: 70px; font-size: 1.6rem; }
     }
   </style>
 </head>
@@ -166,172 +186,368 @@
     <header>
       <div class="waveform" id="waveform"></div>
       <h1>🎙️ AI语音克隆工具箱</h1>
-      <p>上传一段录音，AI就能模仿任意人的声音<br>全部免费，打开即用</p>
+      <p>录音 → 克隆 → 生成，一站式完成</p>
     </header>
 
-    <!-- Best choice -->
-    <div class="best-banner">
-      <div class="label">⭐ 国内首选 · 无需翻墙</div>
-      <h2>Fish Audio 语音克隆</h2>
-      <p>上传15秒音频即可克隆声音，支持中英日韩等多语言<br>效果自然，国内可直接访问，注册送免费额度</p>
-      <a href="https://www.fish.audio/" target="_blank" class="btn-go">
-        🐟 立即使用 Fish Audio →
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('record',this)">🎤 录音克隆</button>
+      <button class="tab-btn" onclick="switchTab('tools',this)">🔗 在线工具</button>
+      <button class="tab-btn" onclick="switchTab('help',this)">📖 教程</button>
+    </div>
+
+    <!-- Tab 1: Record & Clone -->
+    <div class="tab-content active" id="tab-record">
+      <!-- Step 1: Record or Upload -->
+      <div class="card">
+        <h3>第一步：录制或上传参考音频</h3>
+        <p style="color:#8888a0;font-size:0.85rem;margin-bottom:16px;">录一段你想模仿的人的声音（建议3-10秒，清晰无噪音）</p>
+
+        <div class="recorder">
+          <button class="rec-btn" id="recBtn" onclick="toggleRecording()">🎤</button>
+          <div class="rec-time" id="recTime">0:00</div>
+          <div class="rec-status" id="recStatus">点击麦克风开始录音</div>
+          <div class="live-wave" id="liveWave"></div>
+        </div>
+
+        <div id="audioResult" style="display:none;">
+          <audio id="audioPlayer" controls class="audio-player"></audio>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="resetRecording()">🔄 重新录制</button>
+            <button class="btn btn-primary" onclick="downloadRecording()">💾 下载录音</button>
+          </div>
+        </div>
+
+        <div class="file-input-wrap">
+          <button class="btn btn-secondary btn-block">📁 或选择音频文件上传</button>
+          <input type="file" accept="audio/*" onchange="handleFileUpload(event)">
+        </div>
+      </div>
+
+      <!-- Step 2: Input text -->
+      <div class="card" id="step2" style="opacity:0.5;pointer-events:none;">
+        <h3>第二步：填写参考文字</h3>
+        <p style="color:#8888a0;font-size:0.85rem;margin-bottom:12px;">输入录音中说的内容（让AI知道参考音频的文字）</p>
+        <textarea id="refText" rows="3" placeholder="例如：大家好，我是小明，很高兴认识你们。"
+          style="width:100%;background:#1a1a25;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px;color:#e8e8ed;font-family:inherit;font-size:0.9rem;resize:vertical;"
+        ></textarea>
+      </div>
+
+      <!-- Step 3: Target text -->
+      <div class="card" id="step3" style="opacity:0.5;pointer-events:none;">
+        <h3>第三步：输入想让TA说的话</h3>
+        <p style="color:#8888a0;font-size:0.85rem;margin-bottom:12px;">输入任意文字，AI会用克隆的声音读出来</p>
+        <textarea id="targetText" rows="3" placeholder="例如：今天天气真好，我们一起出去玩吧！"
+          style="width:100%;background:#1a1a25;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px;color:#e8e8ed;font-family:inherit;font-size:0.9rem;resize:vertical;"
+        ></textarea>
+
+        <div class="btn-row">
+          <a href="https://www.fish.audio/" target="_blank" class="btn btn-primary" id="cloneBtn">
+            🚀 去 Fish Audio 克隆
+          </a>
+          <a href="https://huggingface.co/spaces/kevinwang676/gpt_sovits_demo" target="_blank" class="btn btn-secondary">
+            🎯 去 GPT-SoVITS 克隆
+          </a>
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(124,92,252,0.06);border-color:rgba(124,92,252,0.2);">
+        <p style="font-size:0.85rem;color:#b8a8e8;line-height:1.6;">
+          💡 <strong>流程说明：</strong>在上方录好音 → 下载录音文件 → 点击克隆按钮 → 在打开的工具页面上传录音文件 + 填写文字 → 生成克隆语音
+        </p>
+      </div>
+    </div>
+
+    <!-- Tab 2: Online Tools -->
+    <div class="tab-content" id="tab-tools">
+      <div class="section-title">⭐ 国内可用（无需翻墙）</div>
+      <a href="https://www.fish.audio/" target="_blank" class="tool-card">
+        <span class="icon">🐟</span>
+        <div class="info">
+          <h4>Fish Audio</h4>
+          <p>效果最好，15秒音频克隆，支持多语言</p>
+          <span class="tag tag-green">免费额度</span><span class="tag tag-purple">国内首选</span>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="https://www.coze.cn/" target="_blank" class="tool-card">
+        <span class="icon">🤖</span>
+        <div class="info">
+          <h4>Coze 扣子</h4>
+          <p>字节跳动出品，中文效果好，内置语音克隆</p>
+          <span class="tag tag-green">免费</span><span class="tag tag-purple">中文最佳</span>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="https://jimeng.jianying.com/" target="_blank" class="tool-card">
+        <span class="icon">🎬</span>
+        <div class="info">
+          <h4>即梦AI</h4>
+          <p>字节旗下，声音克隆+视频配音</p>
+          <span class="tag tag-green">免费额度</span>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+
+      <div class="section-title">🌐 免费在线工具（可能需翻墙）</div>
+      <a href="https://huggingface.co/spaces/kevinwang676/gpt_sovits_demo" target="_blank" class="tool-card">
+        <span class="icon">🎯</span>
+        <div class="info">
+          <h4>GPT-SoVITS</h4>
+          <p>开源神器，3-10秒音频克隆，完全免费</p>
+          <span class="tag tag-green">完全免费</span>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="https://huggingface.co/spaces/mrfakename/E2-F5-TTS" target="_blank" class="tool-card">
+        <span class="icon">⚡</span>
+        <div class="info">
+          <h4>F5-TTS</h4>
+          <p>新一代零样本TTS，操作最简单</p>
+          <span class="tag tag-green">完全免费</span>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="https://www.minimaxi.com/" target="_blank" class="tool-card">
+        <span class="icon">🔊</span>
+        <div class="info">
+          <h4>MiniMax 语音</h4>
+          <p>国内AI公司，合成质量高</p>
+          <span class="tag tag-green">免费额度</span>
+        </div>
+        <span class="arrow">→</span>
       </a>
     </div>
 
-    <!-- HuggingFace tools -->
-    <div class="section-title">🌐 免费在线工具（可能需要翻墙）</div>
+    <!-- Tab 3: Help -->
+    <div class="tab-content" id="tab-help">
+      <div class="card">
+        <h3>📋 快速教程</h3>
+        <div style="margin-top:14px;">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              <h4>录音</h4>
+              <p>在「录音克隆」页面点击麦克风录制想模仿的人的声音</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">
+              <h4>下载录音</h4>
+              <p>录完后点击「下载录音」保存到电脑</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">
+              <h4>打开克隆工具</h4>
+              <p>点击 Fish Audio 或 GPT-SoVITS 链接，上传录音文件</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-text">
+              <h4>填写文字并生成</h4>
+              <p>输入录音中说的文字 + 想让TA说的话 → 点击生成</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <a href="https://huggingface.co/spaces/kevinwang676/gpt_sovits_demo" target="_blank" class="tool-card">
-      <div class="top">
-        <span class="icon">🎯</span>
-        <div class="info">
-          <h3>GPT-SoVITS 语音克隆</h3>
-          <span class="url">huggingface.co/spaces/kevinwang676</span>
+      <div class="card">
+        <h3>❓ 常见问题</h3>
+        <div style="margin-top:10px;">
+          <p style="color:#8888a0;font-size:0.85rem;line-height:1.8;">
+            <strong style="color:#e8e8ed;">录音要求？</strong> 建议3-10秒，清晰无噪音，只有一个人说话<br><br>
+            <strong style="color:#e8e8ed;">支持什么语言？</strong> 中文、英文、日文、韩文，其中中文效果最好<br><br>
+            <strong style="color:#e8e8ed;">效果不好怎么办？</strong> 换一段更清晰的参考音频，或换用 Fish Audio<br><br>
+            <strong style="color:#e8e8ed;">需要翻墙吗？</strong> Fish Audio、Coze、即梦AI 国内可直接访问
+          </p>
         </div>
       </div>
-      <div class="desc">开源语音克隆神器，3-10秒音频即可克隆。上传参考音频 + 对应文字，输入目标文字即可生成。</div>
-      <div class="tags">
-        <span class="tag tag-green">完全免费</span>
-        <span class="tag tag-purple">效果最好</span>
-        <span class="tag tag-yellow">首次加载慢</span>
-      </div>
-      <span class="arrow">→</span>
-    </a>
 
-    <a href="https://huggingface.co/spaces/mrfakename/E2-F5-TTS" target="_blank" class="tool-card">
-      <div class="top">
-        <span class="icon">⚡</span>
-        <div class="info">
-          <h3>F5-TTS 零样本语音合成</h3>
-          <span class="url">huggingface.co/spaces/mrfakename</span>
-        </div>
+      <div class="warn-box">
+        ⚠️ <strong>温馨提示：</strong>语音克隆仅供学习娱乐，请勿用于冒充他人进行违法活动。
       </div>
-      <div class="desc">新一代零样本TTS，只需上传参考音频和目标文字即可生成，无需填写参考文字。</div>
-      <div class="tags">
-        <span class="tag tag-green">完全免费</span>
-        <span class="tag tag-purple">操作简单</span>
-      </div>
-      <span class="arrow">→</span>
-    </a>
-
-    <a href="https://huggingface.co/spaces/zomehwh/GPT-SoVITS-ba" target="_blank" class="tool-card">
-      <div class="top">
-        <span class="icon">🎵</span>
-        <div class="info">
-          <h3>GPT-SoVITS Ba版</h3>
-          <span class="url">huggingface.co/spaces/zomehwh</span>
-        </div>
-      </div>
-      <div class="desc">GPT-SoVITS的另一个在线版本，备选方案。</div>
-      <div class="tags">
-        <span class="tag tag-green">完全免费</span>
-      </div>
-      <span class="arrow">→</span>
-    </a>
-
-    <!-- Chinese tools -->
-    <div class="section-title">🇨🇳 国内可用（无需翻墙）</div>
-
-    <a href="https://www.coze.cn/" target="_blank" class="tool-card">
-      <div class="top">
-        <span class="icon">🤖</span>
-        <div class="info">
-          <h3>Coze 扣子</h3>
-          <span class="url">coze.cn</span>
-        </div>
-      </div>
-      <div class="desc">字节跳动出品AI平台，内置语音克隆功能。中文效果好，操作简单。</div>
-      <div class="tags">
-        <span class="tag tag-green">免费</span>
-        <span class="tag tag-purple">中文最佳</span>
-        <span class="tag tag-yellow">需注册</span>
-      </div>
-      <span class="arrow">→</span>
-    </a>
-
-    <a href="https://jimeng.jianying.com/" target="_blank" class="tool-card">
-      <div class="top">
-        <span class="icon">🎬</span>
-        <div class="info">
-          <h3>即梦AI</h3>
-          <span class="url">jimeng.jianying.com</span>
-        </div>
-      </div>
-      <div class="desc">字节跳动旗下，支持声音克隆和视频配音，中文效果优秀。</div>
-      <div class="tags">
-        <span class="tag tag-green">免费额度</span>
-        <span class="tag tag-yellow">需注册</span>
-      </div>
-      <span class="arrow">→</span>
-    </a>
-
-    <a href="https://www.minimaxi.com/" target="_blank" class="tool-card">
-      <div class="top">
-        <span class="icon">🔊</span>
-        <div class="info">
-          <h3>MiniMax 语音</h3>
-          <span class="url">minimaxi.com</span>
-        </div>
-      </div>
-      <div class="desc">国内AI公司，语音合成质量高，支持声音克隆。</div>
-      <div class="tags">
-        <span class="tag tag-green">免费额度</span>
-      </div>
-      <span class="arrow">→</span>
-    </a>
-
-    <!-- Tutorial -->
-    <div class="section-title">📖 使用教程（以GPT-SoVITS为例）</div>
-    <div class="steps-card">
-      <h3>四步完成语音克隆</h3>
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-text">
-          <h4>准备参考音频</h4>
-          <p>录一段想模仿的人的声音，建议<strong>3-10秒</strong>，清晰无噪音</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-text">
-          <h4>打开工具并上传音频</h4>
-          <p>点击上面的工具链接，上传参考音频，填写音频里说的文字内容</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-text">
-          <h4>输入目标文字</h4>
-          <p>输入你想让TA说的话，选择语言（中文选 zh / Chinese）</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <div class="step-text">
-          <h4>生成并下载</h4>
-          <p>点击Generate生成，几秒后就能试听和下载克隆后的语音</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="warn-box">
-      ⚠️ <strong>温馨提示：</strong>语音克隆仅供学习娱乐。请勿用于冒充他人进行欺诈等违法活动。使用时请遵守相关法律法规。
     </div>
 
     <footer>
       <p>AI语音克隆工具箱 · 免费在线工具合集</p>
-      <p style="margin-top:4px;">仅供学习交流使用</p>
     </footer>
   </div>
 
   <script>
-    const waveform = document.getElementById('waveform');
+    // Waveform decoration
+    const wf = document.getElementById('waveform');
     for (let i = 0; i < 25; i++) {
       const bar = document.createElement('div');
       bar.className = 'bar';
       bar.style.animationDelay = (i * 0.08) + 's';
-      waveform.appendChild(bar);
+      wf.appendChild(bar);
+    }
+
+    // Tab switching
+    function switchTab(id, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + id).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // Recording
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioBlob = null;
+    let timer = null;
+    let seconds = 0;
+    let audioCtx = null;
+    let analyser = null;
+    let animFrame = null;
+
+    // Generate live wave bars
+    const liveWave = document.getElementById('liveWave');
+    for (let i = 0; i < 20; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = '4px';
+      liveWave.appendChild(bar);
+    }
+
+    async function toggleRecording() {
+      const btn = document.getElementById('recBtn');
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        stopRecording();
+      } else {
+        await startRecording();
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        seconds = 0;
+
+        // Setup audio analyzer for live waveform
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaStreamSource(stream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        source.connect(analyser);
+
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          stream.getTracks().forEach(t => t.stop());
+          audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          showResult();
+          cancelAnimationFrame(animFrame);
+          if (audioCtx) audioCtx.close();
+        };
+
+        mediaRecorder.start();
+
+        // Update UI
+        const btn = document.getElementById('recBtn');
+        btn.classList.add('recording');
+        btn.textContent = '⏹';
+        document.getElementById('recStatus').textContent = '正在录音...';
+        document.getElementById('recTime').textContent = '0:00';
+        document.getElementById('audioResult').style.display = 'none';
+
+        // Timer
+        timer = setInterval(() => {
+          seconds++;
+          const m = Math.floor(seconds / 60);
+          const s = seconds % 60;
+          document.getElementById('recTime').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+        }, 1000);
+
+        // Live waveform
+        drawWave();
+
+      } catch(e) {
+        document.getElementById('recStatus').textContent = '❌ 无法访问麦克风，请检查浏览器权限';
+      }
+    }
+
+    function drawWave() {
+      if (!analyser) return;
+      const bars = liveWave.children;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      for (let i = 0; i < bars.length; i++) {
+        const val = data[i] || 0;
+        bars[i].style.height = Math.max(4, val / 255 * 36) + 'px';
+      }
+      animFrame = requestAnimationFrame(drawWave);
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        clearInterval(timer);
+        cancelAnimationFrame(animFrame);
+
+        const btn = document.getElementById('recBtn');
+        btn.classList.remove('recording');
+        btn.textContent = '🎤';
+        document.getElementById('recStatus').textContent = '录音完成！';
+        // Reset live wave
+        const bars = liveWave.children;
+        for (let i = 0; i < bars.length; i++) bars[i].style.height = '4px';
+      }
+    }
+
+    function showResult() {
+      const url = URL.createObjectURL(audioBlob);
+      document.getElementById('audioPlayer').src = url;
+      document.getElementById('audioResult').style.display = 'block';
+
+      // Enable step 2 & 3
+      document.getElementById('step2').style.opacity = '1';
+      document.getElementById('step2').style.pointerEvents = 'auto';
+      document.getElementById('step3').style.opacity = '1';
+      document.getElementById('step3').style.pointerEvents = 'auto';
+    }
+
+    function resetRecording() {
+      audioBlob = null;
+      audioChunks = [];
+      seconds = 0;
+      document.getElementById('recTime').textContent = '0:00';
+      document.getElementById('recStatus').textContent = '点击麦克风开始录音';
+      document.getElementById('audioResult').style.display = 'none';
+      document.getElementById('step2').style.opacity = '0.5';
+      document.getElementById('step2').style.pointerEvents = 'none';
+      document.getElementById('step3').style.opacity = '0.5';
+      document.getElementById('step3').style.pointerEvents = 'none';
+    }
+
+    function downloadRecording() {
+      if (!audioBlob) return;
+      const url = URL.createObjectURL(audioBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'voice-clone-reference.webm';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      audioBlob = file;
+      const url = URL.createObjectURL(file);
+      document.getElementById('audioPlayer').src = url;
+      document.getElementById('audioResult').style.display = 'block';
+      document.getElementById('recStatus').textContent = '已加载音频文件：' + file.name;
+      document.getElementById('recTime').textContent = '📁';
+
+      document.getElementById('step2').style.opacity = '1';
+      document.getElementById('step2').style.pointerEvents = 'auto';
+      document.getElementById('step3').style.opacity = '1';
+      document.getElementById('step3').style.pointerEvents = 'auto';
     }
   </script>
 </body>
